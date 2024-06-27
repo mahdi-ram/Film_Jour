@@ -34,22 +34,24 @@ async def get_name_movie(message: Message) -> None:
             try:
                 almasmovie_page = moviefinders.almasmovie.find_movie(imdb_id)
                 mobomovie_page = moviefinders.mobomovie.find_movie(movie_name,imdb_id)
-                if almasmovie_page[0] == None and mobomovie_page==None:
+                if almasmovie_page[0] is None and mobomovie_page is None:
                     await message.answer(pasegs.not_fouand)
-                elif  mobomovie_page[0]==None:
+                elif  mobomovie_page[0] is None:
                     await message.answer("1")
                     almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
                     alllinks=almaslinks
                     await message.answer("befer")
+                    keyboard = InlineKeyboardMarkup()
                     for index in alllinks.items():
                         button = InlineKeyboardButton(index, callback_data='button_clicked')
                         keyboard.add(button)
                     await message.answer(pasegs.finded,reply_markup=keyboard)
-                elif almasmovie_page[0] == None:
+                elif almasmovie_page[0] is None:
                     await message.answer("1")
                     mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
                     alllinks = mobolinks
                     await message.answer("befer")
+                    keyboard = InlineKeyboardMarkup()
                     for index in alllinks.items():
                         button = InlineKeyboardButton(index, callback_data='button_clicked')
                         keyboard.add(button)
