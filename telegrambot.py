@@ -1,14 +1,12 @@
 import asyncio
 import logging
 import sys
-from os import getenv
 import re
 from aiogram import Bot, Dispatcher, html 
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import Message ,InlineKeyboardMarkup ,InlineKeyboardButton
 import pasegs
 import moviefinders.almasmovie
 import moviefinders.mobomovie
@@ -39,13 +37,21 @@ async def get_name_movie(message: Message) -> None:
                 if almasmovie_page[0] == None and mobomovie_page==None:
                     await message.answer(pasegs.not_fouand)
                 else:
-                    almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
-                    mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
-                    alllinks = mobolinks | almaslinks
-                    builder = InlineKeyboardBuilder()
+                    if  mobomovie_page[0]==None:
+                        almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
+                        alllinks=almaslinks
+                    if almasmovie_page[0] == None:
+                        mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
+                        alllinks = mobolinks
+                    else:
+                        almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
+                        mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
+                        alllinks = almaslinks | mobolinks
+                    keyboard = InlineKeyboardMarkup()
                     for index in alllinks.items():
-                        builder.button(text=f"Set {index[0]}", callback_data=f"{index[0]}")
-                    await message.answer(pasegs.finded,reply_markup=builder.as_markup())
+                        button = InlineKeyboardButton(index, callback_data='button_clicked')
+                        keyboard.add(button)
+                    await message.answer(pasegs.finded,reply_markup=keyboard)
             except TypeError:
                 ...
     except TypeError:
