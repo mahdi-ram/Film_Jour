@@ -41,22 +41,31 @@ async def get_name_movie(message: Message) -> None:
                     almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
                     alllinks=almaslinks
                     await message.answer("befer")
+                    for index in alllinks.items():
+                        button = InlineKeyboardButton(index, callback_data='button_clicked')
+                        keyboard.add(button)
+                    await message.answer(pasegs.finded,reply_markup=keyboard)
                 elif almasmovie_page[0] == None:
                     await message.answer("1")
                     mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
                     alllinks = mobolinks
                     await message.answer("befer")
+                    for index in alllinks.items():
+                        button = InlineKeyboardButton(index, callback_data='button_clicked')
+                        keyboard.add(button)
+                    await message.answer(pasegs.finded,reply_markup=keyboard)
                 else:
                     await message.answer("1")
                     almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
                     mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
                     alllinks = almaslinks | mobolinks
                     await message.answer("befer")
-                keyboard = InlineKeyboardMarkup()
-                for index in alllinks.items():
-                    button = InlineKeyboardButton(index, callback_data='button_clicked')
-                    keyboard.add(button)
-                await message.answer(pasegs.finded,reply_markup=keyboard)
+                    keyboard = InlineKeyboardMarkup()
+                    for index in alllinks.items():
+                        button = InlineKeyboardButton(index, callback_data='button_clicked')
+                        keyboard.add(button)
+                    await message.answer(pasegs.finded,reply_markup=keyboard)
+
             except TypeError:
                 ...
     except TypeError:
