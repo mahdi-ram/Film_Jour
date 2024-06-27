@@ -34,6 +34,8 @@ async def get_name_movie(message: Message) -> None:
             try:
                 almasmovie_page = moviefinders.almasmovie.find_movie(imdb_id)
                 mobomovie_page = moviefinders.mobomovie.find_movie(movie_name,imdb_id)
+                await message.answer(almasmovie_page)
+                await message.answer(mobomovie_page)
                 if almasmovie_page[0] is None and mobomovie_page is None:
                     await message.answer(pasegs.not_fouand)
                 elif  mobomovie_page[0] is None:
@@ -62,8 +64,6 @@ async def get_name_movie(message: Message) -> None:
                         button = InlineKeyboardButton(index, callback_data='button_clicked')
                         keyboard.add(button)
                     await message.answer(pasegs.finded,reply_markup=keyboard)
-                await message.answer(pasegs.finded)
-
             except TypeError:
                 ...
     except TypeError:
