@@ -15,7 +15,10 @@ TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 # All handlers should be attached to the Router (or Dispatcher)
 
 dp = Dispatcher()
-
+def remove_username(text: str) -> str:
+    pattern = r'@TgISTRASH$'
+    result = re.sub(pattern, '', text).strip()
+    return result
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message)
@@ -30,7 +33,7 @@ async def get_name_movie(message: Message) -> None:
             match = re.search(pattern,  message.entities[1].url)
             if match:
                 imdb_id = match.group()
-            movie_name = message.text
+            movie_name = remove_username(message.text)
             try:
                 almasmovie_page = moviefinders.almasmovie.find_movie(imdb_id)
                 mobomovie_page = moviefinders.mobomovie.find_movie(movie_name,imdb_id)
