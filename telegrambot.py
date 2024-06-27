@@ -36,22 +36,27 @@ async def get_name_movie(message: Message) -> None:
                 mobomovie_page = moviefinders.mobomovie.find_movie(movie_name,imdb_id)
                 if almasmovie_page[0] == None and mobomovie_page==None:
                     await message.answer(pasegs.not_fouand)
+                elif  mobomovie_page[0]==None:
+                    await message.answer("1")
+                    almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
+                    alllinks=almaslinks
+                    await message.answer("befer")
+                elif almasmovie_page[0] == None:
+                    await message.answer("1")
+                    mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
+                    alllinks = mobolinks
+                    await message.answer("befer")
                 else:
-                    if  mobomovie_page[0]==None:
-                        almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
-                        alllinks=almaslinks
-                    if almasmovie_page[0] == None:
-                        mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
-                        alllinks = mobolinks
-                    else:
-                        almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
-                        mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
-                        alllinks = almaslinks | mobolinks
-                    keyboard = InlineKeyboardMarkup()
-                    for index in alllinks.items():
-                        button = InlineKeyboardButton(index, callback_data='button_clicked')
-                        keyboard.add(button)
-                    await message.answer(pasegs.finded,reply_markup=keyboard)
+                    await message.answer("1")
+                    almaslinks = moviefinders.almasmovie.find_links(almasmovie_page[0],almasmovie_page[1])
+                    mobolinks =  moviefinders.mobomovie.find_links(mobomovie_page[0],mobomovie_page[1])
+                    alllinks = almaslinks | mobolinks
+                    await message.answer("befer")
+                keyboard = InlineKeyboardMarkup()
+                for index in alllinks.items():
+                    button = InlineKeyboardButton(index, callback_data='button_clicked')
+                    keyboard.add(button)
+                await message.answer(pasegs.finded,reply_markup=keyboard)
             except TypeError:
                 ...
     except TypeError:
