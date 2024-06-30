@@ -49,6 +49,35 @@ def create_keyboard(links):
     builder.adjust(1,1)
     return builder.as_markup()
 
+def get_links(imdbid:str,movie_name:str):
+        almasmovie_page = moviefinders.almasmovie.find_movie(imdb_id)
+        mobomovie_page = moviefinders.mobomovie.find_movie(movie_name.strip(), imdb_id)
+                
+        if not almasmovie_page[0] and not mobomovie_page[0]:
+            return False,pasegs.not_fouand
+        else:
+            almas={}
+            mobo={}
+            all_links = {}
+            if almasmovie_page[0]:
+                almas_links = moviefinders.almasmovie.find_links(almasmovie_page[0], almasmovie_page[1])
+                if almas_links[0]=="movie":
+                    all_links.update(almas_links[1])
+                else:
+                    almas.update(almas_links[1])
+            if mobomovie_page[0]:
+                mobo_links = moviefinders.mobomovie.find_links(mobomovie_page[0], mobomovie_page[1])
+                if mobo_links[0]=="movie":
+                    all_links.update(mobo_links[1])
+                else:
+                    mobo.update(mobo_links[1])
+                    
+            if all_links:
+                keyboard = create_keyboard(all_links)
+                return keyboard 
+            elif mobo or almas:
+                keyboard=create_keyboard(compnait_lists(mobo,almas))
+                return keyboard
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message)
@@ -62,37 +91,13 @@ async def get_name_movie(message: Message) -> None:
             if match:
                 imdb_id = match.group()
                 movie_name = clean_text(message.text)
-                
-            almasmovie_page = moviefinders.almasmovie.find_movie(imdb_id)
-            mobomovie_page = moviefinders.mobomovie.find_movie(movie_name.strip(), imdb_id)
-                
-            if not almasmovie_page[0] and not mobomovie_page[0]:
+            keyboard=get_links(imdb_id,movie_name)
+            if keyboard ==False:
                 await message.answer(pasegs.not_fouand)
             else:
-                almas={}
-                mobo={}
-                all_links = {}
-                if almasmovie_page[0]:
-                    almas_links = moviefinders.almasmovie.find_links(almasmovie_page[0], almasmovie_page[1])
-                    if almas_links[0]=="movie":
-                        all_links.update(almas_links[1])
-                    else:
-                        almas.update(almas_links[1])
-                if mobomovie_page[0]:
-                    mobo_links = moviefinders.mobomovie.find_links(mobomovie_page[0], mobomovie_page[1])
-                    if mobo_links[0]=="movie":
-                        all_links.update(mobo_links[1])
-                    else:
-                        mobo.update(mobo_links[1])
-                    
-                if all_links:
-                    keyboard = create_keyboard(all_links)
-                    await message.answer(pasegs.finded, reply_markup=keyboard)
-                elif mobo or almas:
-                    keyboard=create_keyboard(compnait_lists(mobo,almas))
-                    await message.answer(pasegs.finded, reply_markup=keyboard)
-                else:
-                    await message.answer(pasegs.not_fouand)
+                await message.answer(pasegs.finded,reply_markup=keyboard)
+
+
     except TypeError:
         await message.answer(pasegs.format_not_suport)
 
