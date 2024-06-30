@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 import re
-from aiogram import Bot, Dispatcher, html
+from aiogram import Bot, Dispatcher, html ,types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
@@ -11,7 +11,7 @@ import pasegs
 import moviefinders.almasmovie
 import moviefinders.mobomovie
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+import json
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
@@ -45,7 +45,7 @@ def create_keyboard(links):
         "دوبله فارسی 🗣" if index == "dubbed" else
         f"فصل {index} 🗂" if isinstance(index, int) or index.isdigit() else
         index)
-        builder.button(text=f"{text}", callback_data=f"{value}")
+        builder.button(text=f"{text}", callback_data=json.dumps(value))
     builder.adjust(1,1)
     return builder.as_markup()
 
