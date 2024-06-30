@@ -28,7 +28,7 @@ def find_links(linkpage, type_):
             # Extract season number
             season_number = season.text.strip().split()[-1]
             links = []
-
+            ader={}
             # Find all <a> elements within the next sibling <p> tags
             next_sibling = season.find_next_sibling('p')
             while next_sibling and next_sibling.name == 'p':
@@ -38,10 +38,20 @@ def find_links(linkpage, type_):
                     url = link['href']
                     links.append((quality, url))
                 next_sibling = next_sibling.find_next_sibling('p')
-
-            series_info[season_number] = dict(links)
-        dl_link["HardSob"] = series_info
-        return len(series_info), dl_link
+            ader["HardSub"]=links
+            series_info[season_number] = ader
+        mobo={}
+        for season, qualities in series_info.items():
+            mobo[int(season)] = {'HardSub': {}}
+            for quality, episodes in qualities.items():
+                for episode in episodes:
+                # گرفتن نام کیفیت (به عنوان کلید) از نام فایل لینک
+                    por={}
+                    quality_name = episode[0]
+                # گرفتن لینک برای هر کیفیت (تنها یک لینک برای همه‌ی قسمت‌ها)
+                    por["تمامی قسمت ها"] = episode[1]
+                    mobo[int(season)]['HardSub'][quality_name] = por
+        return len(series_info), mobo
     else:
         all_p = soup.find_all('p', class_='text-left direction-ltr')
         links = []
@@ -70,5 +80,5 @@ def find_movie(imdbid):
     return data, type_
 
 
-# print(find_links("https://filmgirbot.site/?showitem=tt15398776","ss"))
+print(find_links("https://filmgirbot.site/?showitem=tt11198330","series"))
 #print(find_movie("tt998997"))
