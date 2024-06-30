@@ -13,7 +13,7 @@ import moviefinders.mobomovie
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Bot token can be obtained via https://t.me/BotFather
-TOKEN = "YOUR_BOT_TOKEN"
+TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
 dp = Dispatcher() 
 def compnait_lists(x:dict,y:dict)-> dict:
@@ -45,7 +45,7 @@ def create_keyboard(links):
         "دوبله فارسی 🗣" if index == "dubbed" else
         f"فصل {index} 🗂" if isinstance(index, int) or index.isdigit() else
         index)
-        builder.button(text=f"{text}", callback_data="set:{value}")
+        builder.button(text=f"{text}", callback_data=f"{value}")
     builder.adjust(1,1)
     return builder.as_markup()
 
@@ -96,7 +96,7 @@ async def get_name_movie(message: Message) -> None:
     except TypeError:
         await message.answer(pasegs.format_not_suport)
 
-@dp.callback_query_handler(lambda query: query.data.startswith('@s'))
+@dp.callback_query(lambda query: query.data.startswith('Har'))
 async def process_callback(query: types.CallbackQuery):
     await query.answer(pasegs.wait)
     await query.message.answer("You clicked the button!")

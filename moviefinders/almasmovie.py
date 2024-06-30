@@ -80,5 +80,5 @@ def find_movie(imdbid):
     return data, type_
 
 
-print(find_links("https://filmgirbot.site/?showitem=tt11198330","series"))
+#print(find_links("https://filmgirbot.site/?showitem=tt11198330","series"))
 #print(find_movie("tt998997"))
