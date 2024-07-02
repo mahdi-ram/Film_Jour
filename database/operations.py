@@ -73,13 +73,41 @@ def MovieFindSubtitleTypes(movieid: int) -> dict:
 
 
 def MovieFinderQuality(subtitle_types_id: int) -> dict:
-    qualitys = Session.query(Quality).filter(
-        Quality.type_id == subtitle_types_id).all()
+    qualitys = Session.query(Quality).filter(Quality.type_id == subtitle_types_id).all()
     quality_dict = {}
     for quality in qualitys:
         quality_dict[quality.quality] = quality.link
     return quality_dict
 
-# function seial find 
+# function serial find season by serial id
+def SerialFinderSeason(serialid:int)->dict:
+    Seasons=Session_s.query(Season).filter(Season.serial_id==serialid).all()
+    Season_dict={}
+    for Season in Seasons:
+        Season_dict[f"{Season.number} فصل"]=Season.id
+#function serial find subtype by Season.id
+def SerialFinderSubTypes(Season_id:id)->dict:
+    SubTypes=Session_s.query(SubtitleType).filter(SubtitleType.season_id==Season_id).all()
+    SubType_dict={}
+    for SubType in SubTypes:
+        text = (
+        "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if SubType.type == "HardSub" else
+        "زیرنویس فارسی 🇮🇷" if SubType.type == "soft-sub" else
+        "دوبله فارسی 🗣" if SubType.type == "dubbed" else
+        SubType.type)
+        SubType_dict[text]=SubType.id
+    return SubType_dict
+#function serial find SubtitleQuality by subtype.id
+def SerialFInderSubtitleQuality(subtype_id:int)->dict:
+    SubtitleQualitys=Session_s.query(SubtitleQuality).filter(SubtitleQuality.subtitle_type_id==subtype_id).all()
+    SubtitleQuality_dict={}
+    for SubtitleQuality in SubtitleQualitys:
+        SubtitleQuality_dict[SubtitleQuality.quality]=SubtitleQualitys.id
+    return SubtitleQuality_dict
+#function serial find Episodes by SubtitleQualitys.id
+def SerialFInderEpisodes(Subtitle_Qualitys_id:int)->dict:
+    episodes=Session_s.query(Subtitle).filter(Subtitle.subtitle_quality_id==Subtitle_Qualitys_id).one()
+    return episodes
 # Session close
 Session.close()
+Session_s.close()
