@@ -103,4 +103,4 @@ def find_movie(name, imdbid):
 
 
 #print(find_movie("WALL·E", "tt0910970"))
-#print(find_links("6243","series"))
+print(find_links("6857","movie"))
