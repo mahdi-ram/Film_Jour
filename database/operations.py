@@ -85,6 +85,7 @@ def SerialFinderSeason(serialid:int)->dict:
     Season_dict={}
     for Season in Seasons:
         Season_dict[f"{Season.number} فصل"]=Season.id
+    return Season_dict
 #function serial find subtype by Season.id
 def SerialFinderSubTypes(Season_id:id)->dict:
     SubTypes=Session_s.query(SubtitleType).filter(SubtitleType.season_id==Season_id).all()
