@@ -55,20 +55,3 @@ class Subtitle(Base):
 # ایجاد یک موتور و یک جلسه
 Serial_engine = create_engine('sqlite:///seirals.db')
 Base.metadata.create_all(Serial_engine)
-
-Session = sessionmaker(bind=Serial_engine)
-session = Session()
-
-def creator(name:str,data_seiral:dict):
-    serial=Serial(name=name)
-    for season,subtyps in  data_seiral.items():
-        season=Season(number=season,serial=serial)
-        for subtyp,qualitys in subtyps.items():
-            subtitle_type=SubtitleType(type=subtyp,season=season)
-            for quality,episodes in qualitys.items():
-                subtitle_quality=SubtitleQuality(quality=quality,subtitle_type=subtitle_type)
-                subtitle1 = Subtitle(value=json.dumps(episodes),subtitle_quality=subtitle_quality)
-    session.add(serial)
-
-
-session.commit()

@@ -1,13 +1,16 @@
+from models import (Movie, Movie_engine, Quality, Season, Serial,
+                    Serial_engine, Subtitle, SubtitleQuality, SubtitleType)
 from sqlalchemy.orm import sessionmaker
-from models import Movie, SubtitleType, Quality, Movie_engine
+
 # Create a session
 Session = sessionmaker(bind=Movie_engine)()
+Session_s = sessionmaker(bind=Serial_engine)()
 # function inset serial and movie to databse
 
 
-def InsertMovieOrSeriesDB(movietype: str, moviename: str, data: dict):
-    if movietype == "movie":
-        new_movie = Movie(name=moviename)
+def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
+    if type == "movie":
+        new_movie = Movie(name=name)
         for subtitle_type, qualities in data.items():
             new_subtitle_type = SubtitleType(
                 type=subtitle_type, movie=new_movie)
@@ -18,25 +21,43 @@ def InsertMovieOrSeriesDB(movietype: str, moviename: str, data: dict):
 
         Session.add(new_movie)
         Session.commit()
-        return CheakExist(moviename, movietype)
+        return CheakExist(name, type)
     # serial
     else:
-        pass
+        new_serial = Serial(name=name)
+        for season, subtyps in data_seiral.items():
+            season = Season(number=season, serial=new_serial)
+            for subtyp, qualitys in subtyps.items():
+                subtitle_type = SubtitleType(type=subtyp, season=season)
+                for quality, episodes in qualitys.items():
+                    subtitle_quality = SubtitleQuality(
+                        quality=quality, subtitle_type=subtitle_type)
+                    subtitle1 = Subtitle(value=json.dumps(
+                        episodes), subtitle_quality=subtitle_quality)
+        Session_s.add(new_serial)
+        Session_s.commit()
+        return CheakExist(name, type)
 
 # function cheak exist name in database
 
 
-def CheakExist(moviename: str, type: str):
+def CheakExist(name: str, type: str):
     if type == "movie":
         movie_id = Session.query(Movie.id).filter(
-            Movie.name == moviename).scalar()
+            Movie.name == name).scalar()
         if movie_id:
             return movie_id
         else:
             return None
     # seial
     else:
-        pass
+        Serial_id = Session_s.query(Serial.id).filter(
+            Serial.name == name).scalar()
+        if Serial_id:
+            return Serial_id
+        else:
+            return None
+
 # function Movie finde subtitle types by movie id
 
 
@@ -59,6 +80,6 @@ def MovieFinderQuality(subtitle_types_id: int) -> dict:
         quality_dict[quality.quality] = quality.link
     return quality_dict
 
-
+# function seial find 
 # Session close
 Session.close()
