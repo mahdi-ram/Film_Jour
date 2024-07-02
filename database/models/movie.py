@@ -30,5 +30,3 @@ class Quality(Base):
 Movie_engine = create_engine('sqlite:///movie.db')
 Base.metadata.create_all(Movie_engine)
 
-# Create a session
-Session = sessionmaker(bind=Movie_engine)()
