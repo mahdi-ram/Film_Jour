@@ -108,7 +108,7 @@ async def get_name_movie(message: Message) -> None:
                         builder = InlineKeyboardBuilder()
                         for Serial_Season,Serial_Season_id in Serial_Seasons.items():
                             #SSid serrial season id
-                             builder.button(text=Serial_Season, callback_data=f"SSid_{subtitle_type_id}")
+                             builder.button(text=Serial_Season, callback_data=f"SSid_{Serial_Season_id}")
                         builder.adjust(1,1)
                         keyboard=builder.as_markup()
                         await message.answer(pasegs.finded,reply_markup=keyboard)
@@ -168,11 +168,12 @@ async def process_callback(query: types.CallbackQuery):
     quality_id=int(query.data.split("_")[1])
     episod_dict=SerialFInderEpisodes(quality_id)
     builder = InlineKeyboardBuilder()
-    for episode ,link in episod_dict.items():
+    for episode ,link in json.loads(episod_dict).items():
         builder.button(text=episode, url=link)
     builder.adjust(2,2)
     keyboard=builder.as_markup()
-    await query.message.answer("لطفا قسمت  را انتخاب کنید",reply_markup=keyboard)
+    inline_message_id = query.inline_message_id
+    await query.message.edit_text("لطفا قسمت  را انتخاب کنید",reply_markup=keyboard ,inline_message_id=inline_message_id)
     await query.answer(pasegs.wait)
 
 async def main() -> None:
