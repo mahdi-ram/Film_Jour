@@ -81,6 +81,7 @@ async def get_name_movie(message: Message) -> None:
                 if all_links:
                     movie_id_DB=CheakExist(movie_name,"movie")
                     if movie_id_DB is None:
+                        print(all_links)
                         movie_id_DB=InsertMovieOrSeriesDB("movie",movie_name,all_links)
                         subtitle_types_dict=MovieFindSubtitleTypes(movie_id_DB)
                         builder = InlineKeyboardBuilder()

@@ -12,8 +12,9 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
     if type == "movie":
         new_movie = Movie(name=name)
         for subtitle_type, qualities in data.items():
-            new_subtitle_type = SubtitleType(
-                type=subtitle_type, movie=new_movie)
+            print(data)
+            print(subtitle_type)
+            new_subtitle_type = SubtitleType(type=subtitle_type, movie=new_movie)
 
             for quality, link in qualities.items():
                 new_quality = Quality(
@@ -71,7 +72,6 @@ def MovieFindSubtitleTypes(movieid: int) -> dict:
 
 # function movie find Quality by subtitle_types.id
 
-
 def MovieFinderQuality(subtitle_types_id: int) -> dict:
     qualitys = Session.query(Quality).filter(
         Quality.type_id == subtitle_types_id).all()
@@ -81,7 +81,6 @@ def MovieFinderQuality(subtitle_types_id: int) -> dict:
     return quality_dict
 
 # function serial find season by serial id
-
 
 def SerialFinderSeason(serialid: int) -> dict:
     Seasons = Session_s.query(Season).filter(
