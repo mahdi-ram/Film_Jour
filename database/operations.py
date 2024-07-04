@@ -1,4 +1,4 @@
-from models import (Movie, Movie_engine, Quality, Season, Serial,
+from .models import (Movie, Movie_engine, Quality, Season, Serial,
                     Serial_engine, Subtitle, SubtitleQuality, SubtitleType)
 from sqlalchemy.orm import sessionmaker
 
@@ -12,7 +12,9 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
     if type == "movie":
         new_movie = Movie(name=name)
         for subtitle_type, qualities in data.items():
+            print("------------------------hame data toy ope------------------------")
             print(data)
+            print("------------------------hame subtitele typ------------------------")
             print(subtitle_type)
             new_subtitle_type = SubtitleType(type=subtitle_type, movie=new_movie)
 

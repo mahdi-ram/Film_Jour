@@ -51,7 +51,7 @@ async def command_start_handler(message: Message) -> None:
 
 @dp.message()
 async def get_name_movie(message: Message) -> None:
-    try:
+#    try:
         if message.via_bot and message.via_bot.username == "imdbot":
             pattern = r'tt\d+'
             match = re.search(pattern, message.entities[1].url)
@@ -81,6 +81,7 @@ async def get_name_movie(message: Message) -> None:
                 if all_links:
                     movie_id_DB=CheakExist(movie_name,"movie")
                     if movie_id_DB is None:
+                        print("------------------------hame link ha ingast------------------------")
                         print(all_links)
                         movie_id_DB=InsertMovieOrSeriesDB("movie",movie_name,all_links)
                         subtitle_types_dict=MovieFindSubtitleTypes(movie_id_DB)
@@ -104,8 +105,8 @@ async def get_name_movie(message: Message) -> None:
                     keyboard=create_keyboard(compnait_lists(mobo,almas))
                     await message.answer(pasegs.finded,reply_markup=keyboard)
             
-    except TypeError:
-        await message.answer(pasegs.format_not_suport)
+#    except TypeError:
+#        await message.answer(pasegs.format_not_suport)
 
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))
 async def process_callback(query: types.CallbackQuery):
