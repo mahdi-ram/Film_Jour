@@ -8,9 +8,9 @@ class Movie(Base):
     __tablename__ = "movies"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    subtitle_types = relationship("SubtitleType", back_populates='movie')
+    subtitle_types = relationship("SubtitleTypeMovie", back_populates='movie')
 
-class SubtitleType(Base):
+class SubtitleTypeMovie(Base):
     __tablename__ = "subtitle_types"
     id = Column(Integer, primary_key=True)
     type = Column(String, nullable=False)
@@ -24,7 +24,7 @@ class Quality(Base):
     quality = Column(String, nullable=False)
     link = Column(String, nullable=False)
     type_id = Column(Integer, ForeignKey("subtitle_types.id"), nullable=False)
-    subtitle_type = relationship("SubtitleType", back_populates="qualities")
+    subtitle_type = relationship("SubtitleTypeMovie", back_populates="qualities")
 
 # Create an engine
 Movie_engine = create_engine('sqlite:///movie.db')

@@ -1,5 +1,5 @@
 from .models import (Movie, Movie_engine, Quality, Season, Serial,
-                    Serial_engine, Subtitle, SubtitleQuality, SubtitleType)
+                    Serial_engine, Subtitle, SubtitleQuality, SubtitleType,SubtitleTypeMovie)
 from sqlalchemy.orm import sessionmaker
 
 # Create a session
@@ -12,15 +12,11 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
     if type == "movie":
         new_movie = Movie(name=name)
         for subtitle_type, qualities in data.items():
-            print("------------------------hame data toy ope------------------------")
-            print(data)
             print("------------------------hame subtitele typ------------------------")
             print(subtitle_type)
-            new_subtitle_type = SubtitleType(type=subtitle_type, movie=new_movie)
-
+            new_subtitle_type = SubtitleTypeMovie(type=subtitle_type, movie=new_movie)
             for quality, link in qualities.items():
-                new_quality = Quality(
-                    quality=quality, link=link, subtitle_type=new_subtitle_type)
+                new_quality = Quality(quality=quality, link=link, subtitle_type=new_subtitle_type)
 
         Session.add(new_movie)
         Session.commit()
@@ -65,8 +61,8 @@ def CheakExist(name: str, type: str):
 
 
 def MovieFindSubtitleTypes(movieid: int) -> dict:
-    subtitle_types = Session.query(SubtitleType).filter(
-        SubtitleType.movie_id == movieid).all()
+    subtitle_types = Session.query(SubtitleTypeMovie).filter(
+        SubtitleTypeMovie.movie_id == movieid).all()
     subtitle_types_dict = {}
     for subtitle_type in subtitle_types:
         subtitle_types_dict[subtitle_type.type] = subtitle_type.id
