@@ -18,7 +18,7 @@ import pasegs
 from database import (CheakExist, InsertMovieOrSeriesDB,
                        MovieFindSubtitleTypes, SerialFInderEpisodes,
                        SerialFinderSeason, SerialFInderSubtitleQuality,
-                       SerialFinderSubTypes)
+                       SerialFinderSubTypes,MovieFinderQuality)
 
 TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
@@ -81,8 +81,6 @@ async def get_name_movie(message: Message) -> None:
                 if all_links:
                     movie_id_DB=CheakExist(movie_name,"movie")
                     if movie_id_DB is None:
-                        print("------------------------hame link ha ingast------------------------")
-                        print(all_links)
                         movie_id_DB=InsertMovieOrSeriesDB("movie",movie_name,all_links)
                         subtitle_types_dict=MovieFindSubtitleTypes(movie_id_DB)
                         builder = InlineKeyboardBuilder()
@@ -102,8 +100,27 @@ async def get_name_movie(message: Message) -> None:
                         keyboard=builder.as_markup()
                         await message.answer(pasegs.finded,reply_markup=keyboard)
                 elif mobo or almas:
-                    keyboard=create_keyboard(compnait_lists(mobo,almas))
-                    await message.answer(pasegs.finded,reply_markup=keyboard)
+                    all_links=compnait_lists(mobo,almas)
+                    serial_id_DB=CheakExist(movie_name,"serial")
+                    if serial_id_DB is None:
+                        serial_id_DB=InsertMovieOrSeriesDB("serial",movie_name,all_links)
+                        Serial_Seasons=SerialFinderSeason(int(serial_id_DB))
+                        builder = InlineKeyboardBuilder()
+                        for Serial_Season,Serial_Season_id in Serial_Seasons.items():
+                            #SSid serrial season id
+                             builder.button(text=Serial_Season, callback_data=f"SSid_{subtitle_type_id}")
+                        builder.adjust(1,1)
+                        keyboard=builder.as_markup()
+                        await message.answer(pasegs.finded,reply_markup=keyboard)
+                    else:
+                        Serial_Seasons=SerialFinderSeason(int(serial_id_DB))
+                        builder = InlineKeyboardBuilder()
+                        for Serial_Season,Serial_Season_id in Serial_Seasons.items():
+                            #SSid serrial season id
+                             builder.button(text=Serial_Season, callback_data=f"SSid_{subtitle_type_id}")
+                        builder.adjust(1,1)
+                        keyboard=builder.as_markup()
+                        await message.answer(pasegs.finded,reply_markup=keyboard)
             
 #    except TypeError:
 #        await message.answer(pasegs.format_not_suport)
@@ -117,9 +134,46 @@ async def process_callback(query: types.CallbackQuery):
          builder.button(text=quality, url=quality_link)
     builder.adjust(1,1)
     keyboard=builder.as_markup()
-    await query.answer(pasegs.wait,reply_markup=keyboard)
-    await query.message.answer("You clicked the button!")
+    await query.message.answer("لطفا کیفیت را مشخص کنید",reply_markup=keyboard)
+    await query.answer(pasegs.wait)
 
+@dp.callback_query(lambda query: query.data.startswith('SSid_'))
+async def process_callback(query: types.CallbackQuery):
+    serial_season_id=int(query.data.split("_")[1])
+    SubTypes_dict=SerialFinderSubTypes(serial_season_id)
+    builder = InlineKeyboardBuilder()
+    for SubType ,SubType_id in SubTypes_dict.items():
+        #SSTid serial subtitel type id
+        builder.button(text=SubType,  callback_data=f"SSTid_{SubType_id}")
+    builder.adjust(1,1)
+    keyboard=builder.as_markup()
+    await query.message.answer("لطفا نوع زیرنویس  را مشخص کنید",reply_markup=keyboard)
+    await query.answer(pasegs.wait)
+
+@dp.callback_query(lambda query: query.data.startswith('SSTid_'))
+async def process_callback(query: types.CallbackQuery):
+    subtype_id=int(query.data.split("_")[1])
+    SubtitleQualitys_dict=SerialFInderSubtitleQuality(subtype_id)
+    builder = InlineKeyboardBuilder()
+    for Quality ,Quality_id in SubtitleQualitys_dict.items():
+        #SSQid seiral sub quality id
+        builder.button(text=Quality,  callback_data=f"SSQid_{Quality_id}")
+    builder.adjust(1,1)
+    keyboard=builder.as_markup()
+    await query.message.answer("لطفا نوع کیفیت  را مشخص کنید",reply_markup=keyboard)
+    await query.answer(pasegs.wait)
+
+@dp.callback_query(lambda query: query.data.startswith('SSQid_'))
+async def process_callback(query: types.CallbackQuery):
+    quality_id=int(query.data.split("_")[1])
+    episod_dict=json.loads(SerialFInderEpisodes(quality_id))
+    builder = InlineKeyboardBuilder()
+    for episode ,link in episod_dict.items():
+        builder.button(text=episode, url=link)
+    builder.adjust(2,2)
+    keyboard=builder.as_markup()
+    await query.message.answer("لطفا قسمت  را انتخاب کنید",reply_markup=keyboard)
+    await query.answer(pasegs.wait)
 
 async def main() -> None:
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))

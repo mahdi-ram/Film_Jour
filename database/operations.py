@@ -12,9 +12,15 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
     if type == "movie":
         new_movie = Movie(name=name)
         for subtitle_type, qualities in data.items():
-            print("------------------------hame subtitele typ------------------------")
-            print(subtitle_type)
-            new_subtitle_type = SubtitleTypeMovie(type=subtitle_type, movie=new_movie)
+            text = (
+            "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
+            "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
+            "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
+            subtitle_type)
+            if text=="dubbed-sound":
+                pass
+            else:
+                new_subtitle_type = SubtitleTypeMovie(type=text, movie=new_movie)
             for quality, link in qualities.items():
                 new_quality = Quality(quality=quality, link=link, subtitle_type=new_subtitle_type)
 
@@ -90,7 +96,7 @@ def SerialFinderSeason(serialid: int) -> dict:
 # function serial find subtype by Season.id
 
 
-def SerialFinderSubTypes(Season_id: id) -> dict:
+def SerialFinderSubTypes(Season_id: int) -> dict:
     SubTypes = Session_s.query(SubtitleType).filter(
         SubtitleType.season_id == Season_id).all()
     SubType_dict = {}

@@ -1,4 +1,4 @@
 from .operations import (CheakExist, InsertMovieOrSeriesDB,
                        MovieFindSubtitleTypes, SerialFInderEpisodes,
                        SerialFinderSeason, SerialFInderSubtitleQuality,
-                       SerialFinderSubTypes)
+                       SerialFinderSubTypes,MovieFinderQuality)
