@@ -102,5 +102,5 @@ def find_movie(name, imdbid):
     return data
 
 
-#print(find_movie("WALL·E", "tt0910970"))
-#print(find_links("6857","movie"))
+#print(find_movie("Abigail", "6824"))
+print(find_links("6829","series"))

@@ -1,12 +1,19 @@
 from .models import (Movie, Movie_engine, Quality, Season, Serial,
-                    Serial_engine, Subtitle, SubtitleQuality, SubtitleType, SubtitleTypeMovie)
+                    Serial_engine, Subtitle, SubtitleQuality, SubtitleType, SubtitleTypeMovie ,User,user_engine)
 import json
 from sqlalchemy.orm import sessionmaker
 
 # Create a session
 Session = sessionmaker(bind=Movie_engine)()
 Session_s = sessionmaker(bind=Serial_engine)()
-
+Session_u=sessionmaker(bind=user_engine)()
+def userexit(user_id):
+    if Session_u.query(User).filter_by(user_id=user_id).first() is None:
+        return None
+def userwrit(user_id,username,full_name):
+    user = User(user_id=user_id, username=username, full_name=full_name)
+    Session_u.add(user)
+    Session_u.commit()
 # function insert serial and movie to database
 def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
     if type == "movie":
@@ -18,7 +25,7 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
                 "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
                 subtitle_type
             )
-            if text == "dubbed-sound":
+            if text == "dubbed-sound" or text=="subtitle" :
                 pass
             else:
                 new_subtitle_type = SubtitleTypeMovie(type=text, movie=new_movie)
@@ -92,7 +99,7 @@ def SerialFinderSubTypes(season_id: int) -> dict:
     subtype_dict = {}
     for subtype in subtypes:
         text = (
-            "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtype.type == "HardSub" else
+            "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtype.type == "HardSob" else
             "زیرنویس فارسی 🇮🇷" if subtype.type == "soft-sub" else
             "دوبله فارسی 🗣" if subtype.type == "dubbed" else
             subtype.type

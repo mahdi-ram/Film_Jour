@@ -10,31 +10,26 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+from Moviedatafind import infodata
 import moviefinders.almasmovie
 import moviefinders.mobomovie
 import pasegs
-
+from moviefinders import all_links
 from database import (CheakExist, InsertMovieOrSeriesDB,
                        MovieFindSubtitleTypes, SerialFInderEpisodes,
                        SerialFinderSeason, SerialFInderSubtitleQuality,
-                       SerialFinderSubTypes,MovieFinderQuality)
+                       SerialFinderSubTypes,MovieFinderQuality,userexit,userwrit)
 
 TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
 dp = Dispatcher() 
-def compnait_lists(x:dict,y:dict)-> dict:
-    x=x
-    for key_x ,valu_x in x.items():
-            list_v={}
-            for key_y , valu_y in y.items():
-                if key_x == key_y:
-                    for key_valu_y,valu_valu_y in valu_y.items():
-                        list_v[key_valu_y]=valu_valu_y
-                    for key_valu_x,valu_valu_x in valu_x.items():
-                        list_v[key_valu_x]=valu_valu_x
-                    x[key_x]=list_v
-    return x
+def creat_keboard(data:dict,patearn:str):
+    builder = InlineKeyboardBuilder()
+    for x,  y in data.items():
+        builder.button(text=x, callback_data=f"{patearn}_{y}")
+    builder.adjust(1,1)
+    keyboard=builder.as_markup()
+    return keyboard
 
 def clean_text(text: str) -> str:
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)
@@ -47,83 +42,59 @@ def clean_text(text: str) -> str:
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
+    user_id = message.from_user.id
+    username = message.from_user.username
+    full_name = message.from_user.full_name
+    if userexit(user_id) is None:
+        userwrit(user_id,username,full_name)
+        
     await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message)
 
 @dp.message()
 async def get_name_movie(message: Message) -> None:
-#    try:
+    try:
         if message.via_bot and message.via_bot.username == "imdbot":
             pattern = r'tt\d+'
             match = re.search(pattern, message.entities[1].url)
             if match:
                 imdb_id = match.group()
                 movie_name = clean_text(message.text)
-            almasmovie_page = moviefinders.almasmovie.find_movie(imdb_id)
-            mobomovie_page = moviefinders.mobomovie.find_movie(movie_name.strip(), imdb_id)
-            if not almasmovie_page[0] and not mobomovie_page[0]:
-                 await message.answer(pasegs.not_fouand)
-            else:
-                almas={}#serial
-                mobo={}#serial
-                all_links = {}#movie
-                if almasmovie_page[0]:   
-                    almas_links = moviefinders.almasmovie.find_links(almasmovie_page[0], almasmovie_page[1])
-                    if almas_links[0]=="movie":
-                        all_links.update(almas_links[1])
+
+                # Check if the movie or series exists in the database
+                movie_id_DB = CheakExist(movie_name, "movie")
+                serial_id_DB = CheakExist(movie_name, "serial")
+
+                if movie_id_DB:
+                    # If it's a movie
+                    subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
+                    keyboard = create_keyboard(subtitle_types_dict, "MSTid")
+                    data=infodata(imdb_id)
+                    await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+                elif serial_id_DB:
+                    # If it's a serial
+                    Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
+                    keyboard = create_keyboard(Serial_Seasons, "SSid")
+                    data=infodata(imdb_id)
+                    await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+                else:
+                    # If not found in the database, fetch the links
+                    DL_links = all_links(movie_name, imdb_id)
+                    if DL_links is None:
+                        await message.answer(pasegs.not_found)
+                    elif DL_links[0] == "movie":
+                        movie_id_DB = InsertMovieOrSeriesDB("movie", movie_name, DL_links)
+                        subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
+                        keyboard = create_keyboard(subtitle_types_dict, "MSTid")
+                        data=infodata(imdb_id)
+                        await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
                     else:
-                        almas.update(almas_links[1])
-                if mobomovie_page[0]:
-                    mobo_links = moviefinders.mobomovie.find_links(mobomovie_page[0], mobomovie_page[1])
-                    if mobo_links[0]=="movie":
-                        all_links.update(mobo_links[1])
-                    else:
-                        mobo.update(mobo_links[1])
-                if all_links:
-                    movie_id_DB=CheakExist(movie_name,"movie")
-                    if movie_id_DB is None:
-                        movie_id_DB=InsertMovieOrSeriesDB("movie",movie_name,all_links)
-                        subtitle_types_dict=MovieFindSubtitleTypes(movie_id_DB)
-                        builder = InlineKeyboardBuilder()
-                        for subtitle_types,  subtitle_type_id in subtitle_types_dict.items():
-                            #MST = movie sub id 
-                            builder.button(text=subtitle_types, callback_data=f"MSTid_{subtitle_type_id}")
-                        builder.adjust(1,1)
-                        keyboard=builder.as_markup()
-                        await message.answer(pasegs.finded,reply_markup=keyboard)
-                    else:
-                        subtitle_types_dict=MovieFindSubtitleTypes(movie_id_DB)
-                        builder = InlineKeyboardBuilder()
-                        for subtitle_types,  subtitle_type_id in subtitle_types_dict.items():
-                            #MSTid = movie sub type id 
-                            builder.button(text=subtitle_types, callback_data=f"MSTid_{subtitle_type_id}")
-                        builder.adjust(1,1)
-                        keyboard=builder.as_markup()
-                        await message.answer(pasegs.finded,reply_markup=keyboard)
-                elif mobo or almas:
-                    all_links=compnait_lists(mobo,almas)
-                    serial_id_DB=CheakExist(movie_name,"serial")
-                    if serial_id_DB is None:
-                        serial_id_DB=InsertMovieOrSeriesDB("serial",movie_name,all_links)
-                        Serial_Seasons=SerialFinderSeason(int(serial_id_DB))
-                        builder = InlineKeyboardBuilder()
-                        for Serial_Season,Serial_Season_id in Serial_Seasons.items():
-                            #SSid serrial season id
-                             builder.button(text=Serial_Season, callback_data=f"SSid_{Serial_Season_id}")
-                        builder.adjust(1,1)
-                        keyboard=builder.as_markup()
-                        await message.answer(pasegs.finded,reply_markup=keyboard)
-                    else:
-                        Serial_Seasons=SerialFinderSeason(int(serial_id_DB))
-                        builder = InlineKeyboardBuilder()
-                        for Serial_Season,Serial_Season_id in Serial_Seasons.items():
-                            #SSid serrial season id
-                             builder.button(text=Serial_Season, callback_data=f"SSid_{Serial_Season_id}")
-                        builder.adjust(1,1)
-                        keyboard=builder.as_markup()
-                        await message.answer(pasegs.finded,reply_markup=keyboard)
-            
-#    except TypeError:
-#        await message.answer(pasegs.format_not_suport)
+                        serial_id_DB = InsertMovieOrSeriesDB("serial", movie_name, DL_links)
+                        Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
+                        keyboard = create_keyboard(Serial_Seasons, "SSid")
+                        data=infodata(imdb_id)
+                        await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+    except TypeError:
+        await message.answer("مشکل پیش آمده لطفا به ادمین پیام دهید")
 
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))
 async def process_callback(query: types.CallbackQuery):
