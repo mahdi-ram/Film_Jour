@@ -11,8 +11,8 @@ from aiogram.filters import CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from Moviedatafind import infodata
-import moviefinders.almasmovie
-import moviefinders.mobomovie
+# import moviefinders.almasmovie
+# import moviefinders.mobomovie
 import pasegs
 from moviefinders import all_links
 from database import (CheakExist, InsertMovieOrSeriesDB,
@@ -23,7 +23,7 @@ from database import (CheakExist, InsertMovieOrSeriesDB,
 TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
 dp = Dispatcher() 
-def creat_keboard(data:dict,patearn:str):
+def create_keyboard(data:dict,patearn:str):
     builder = InlineKeyboardBuilder()
     for x,  y in data.items():
         builder.button(text=x, callback_data=f"{patearn}_{y}")
@@ -69,31 +69,47 @@ async def get_name_movie(message: Message) -> None:
                     subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
                     keyboard = create_keyboard(subtitle_types_dict, "MSTid")
                     data=infodata(imdb_id)
-                    await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+                    emtiaz=f"⭐️ امیتاز {data[5]} از 10"
+                    react=types.ReactionTypeEmoji(emoji="🔥")
+                    await message.react([react])
+                    await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n" ,show_caption_above_media=True, reply_markup=keyboard)
                 elif serial_id_DB:
                     # If it's a serial
                     Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
                     keyboard = create_keyboard(Serial_Seasons, "SSid")
                     data=infodata(imdb_id)
-                    await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+                    emtiaz=f"⭐️ امیتاز {data[5]} از 10"
+                    react=types.ReactionTypeEmoji(emoji="🔥")
+                    await message.react([react])
+                    await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n" ,show_caption_above_media=True, reply_markup=keyboard)
                 else:
                     # If not found in the database, fetch the links
                     DL_links = all_links(movie_name, imdb_id)
                     if DL_links is None:
-                        await message.answer(pasegs.not_found)
+                        react=types.ReactionTypeEmoji(emoji="😢")
+                        await message.react([react])
+                        await message.answer(pasegs.not_fouand)
                     elif DL_links[0] == "movie":
-                        movie_id_DB = InsertMovieOrSeriesDB("movie", movie_name, DL_links)
+                        movie_id_DB = InsertMovieOrSeriesDB("movie", movie_name, DL_links[1])
                         subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
                         keyboard = create_keyboard(subtitle_types_dict, "MSTid")
                         data=infodata(imdb_id)
-                        await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+                        emtiaz=f"⭐️ امیتاز {data[5]} از 10"
+                        react=types.ReactionTypeEmoji(emoji="🔥")
+                        await message.react([react])
+                        await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n",show_caption_above_media=True , reply_markup=keyboard)
                     else:
-                        serial_id_DB = InsertMovieOrSeriesDB("serial", movie_name, DL_links)
+                        serial_id_DB = InsertMovieOrSeriesDB("serial", movie_name, DL_links[1])
                         Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
                         keyboard = create_keyboard(Serial_Seasons, "SSid")
                         data=infodata(imdb_id)
-                        await message.answer_photo(photo=data[2], caption=f"{data[0]} ({data[1]})\n\n:توضیحات\n{data[3]}", reply_markup=keyboard)
+                        emtiaz=f"⭐️ امیتاز {data[5]} از 10"
+                        react=types.ReactionTypeEmoji(emoji="🔥")
+                        await message.react([react])
+                        await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n",show_caption_above_media=True , reply_markup=keyboard)
     except TypeError:
+        react=types.ReactionTypeEmoji(emoji="🤯")
+        await message.react([react])
         await message.answer("مشکل پیش آمده لطفا به ادمین پیام دهید")
 
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))

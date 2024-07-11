@@ -2,23 +2,35 @@ from .models import (Movie, Movie_engine, Quality, Season, Serial,
                     Serial_engine, Subtitle, SubtitleQuality, SubtitleType, SubtitleTypeMovie ,User,user_engine)
 import json
 from sqlalchemy.orm import sessionmaker
-
+import re
 # Create a session
 Session = sessionmaker(bind=Movie_engine)()
 Session_s = sessionmaker(bind=Serial_engine)()
 Session_u=sessionmaker(bind=user_engine)()
 def userexit(user_id):
-    if Session_u.query(User).filter_by(user_id=user_id).first() is None:
+    user = Session_u.query(User).filter_by(user_id=user_id).first()
+    if user is None:
         return None
-def userwrit(user_id,username,full_name):
-    user = User(user_id=user_id, username=username, full_name=full_name)
-    Session_u.add(user)
-    Session_u.commit()
+    return user
+def userwrit(user_id, username, full_name):
+    try:
+        user = User(user_id=user_id, username=username, full_name=full_name)
+        Session_u.add(user)
+        Session_u.commit()
+    except sqlalchemy.exc.IntegrityError:
+        Session_u.rollback()
+        raise
 # function insert serial and movie to database
+def clean_text(text: str) -> str:
+    text = re.sub(r'[^\x00-\x7F]+', ' ', text)
+    pattern = r'@TgISTRASH$'
+    result = re.sub(pattern, '', text).strip()
+    return result
 def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
     if type == "movie":
         new_movie = Movie(name=name)
         for subtitle_type, qualities in data.items():
+            subtitle_type=clean_text(subtitle_type)
             text = (
                 "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
                 "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
@@ -52,20 +64,17 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
 # function check exist name in database
 def CheakExist(name: str, type: str):
     if type == "movie":
-        movie_id = Session.query(Movie.id).filter(
-            Movie.name == name).scalar()
+        movie_id = Session.query(Movie.id).filter(Movie.name == name).scalar()
         if movie_id:
             return movie_id
         else:
             return None
     else:  # serial
-        serial_id = Session_s.query(Serial.id).filter(
-            Serial.name == name).scalar()
+        serial_id = Session_s.query(Serial.id).filter(Serial.name == name).scalar()
         if serial_id:
             return serial_id
         else:
             return None
-
 # function movie find subtitle types by movie id
 def MovieFindSubtitleTypes(movieid: int) -> dict:
     subtitle_types = Session.query(SubtitleTypeMovie).filter(
@@ -102,8 +111,8 @@ def SerialFinderSubTypes(season_id: int) -> dict:
             "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtype.type == "HardSob" else
             "زیرنویس فارسی 🇮🇷" if subtype.type == "soft-sub" else
             "دوبله فارسی 🗣" if subtype.type == "dubbed" else
-            subtype.type
-        )
+            "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿"       
+            )
         subtype_dict[text] = subtype.id
     return subtype_dict
 

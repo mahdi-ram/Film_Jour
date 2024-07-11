@@ -20,4 +20,4 @@ class User(Base):
 
 # Replace 'sqlite:///telegram_bot.db' with your desired database URL
 user_engine = create_engine('sqlite:///user.db')
-Base.metadata.create_all(engine)
+Base.metadata.create_all(user_engine)

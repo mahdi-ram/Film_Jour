@@ -8,7 +8,7 @@ from bs4.element import NavigableString, Tag
 
 aderess = "https://filmgirbot.site"
 
-def find_movie_and_links(imdbid):
+def find_movie_and_links_almas(imdbid):
     data = aderess + "/?showitem=" + imdbid
     request = requests.get(data)
     soup = bs(request.content, 'html.parser')
