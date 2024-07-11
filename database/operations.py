@@ -26,7 +26,7 @@ def clean_text(text: str) -> str:
     pattern = r'@TgISTRASH$'
     result = re.sub(pattern, '', text).strip()
     return result
-    def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
+def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
         if type == "movie":
             movie = Session.query(Movie).filter_by(name=name).first()
             if movie:
@@ -98,7 +98,7 @@ def getname(id: int, type: str):
             return None
 def refresh_data(type, id, new_data):
     if type == 'movie':
-        movie = movie_session.query(Movie).filter_by(id=id).first()
+        movie = Session.query(Movie).filter_by(id=id).first()
         if movie:
             name = movie.name
         else:
@@ -108,7 +108,7 @@ def refresh_data(type, id, new_data):
         InsertMovieOrSeriesDB(type, name, new_data)
 
     elif type == 'serial':
-        serial = serial_session.query(Serial).filter_by(id=id).first()
+        serial = Session_s.query(Serial).filter_by(id=id).first()
         if serial:
             name = serial.name
         else:

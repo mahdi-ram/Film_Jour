@@ -19,12 +19,11 @@ def infodata(imdb_id: str):
         or_name = item["original_name"] if media_type == "tv" else item["original_title"]
         img_url = f"https://image.tmdb.org/t/p/original{item['poster_path']}"
         overview = item["overview"]
-        creat_years=item["first_air_date"]
         vote=item["vote_average"]
-        if creat_years is None:
-            creat_years=item["release_date"].split("-")[0]
-        else:
+        if media_type == "tv":
             creat_years=item["first_air_date"].split("-")[0]
+        else:
+            creat_years=item["release_date"].split("-")[0]
         return name, or_name, img_url, overview ,creat_years,vote
 
     json_data = get_data(imdb_id, "fa")
