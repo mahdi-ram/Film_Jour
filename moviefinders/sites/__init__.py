@@ -1,2 +1,0 @@
-from .new_almasmovie import find_movie_and_links_almas
-from .new_mobomovie import find_movie_and_links

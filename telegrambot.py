@@ -54,20 +54,13 @@ async def command_start_handler(message: Message) -> None:
     full_name = message.from_user.full_name
     if userexit(user_id) is None:
         userwrit(user_id, username, full_name)
-    button_list = [
-        [
-            InlineKeyboardButton(
-                '🔍جستجو با نام سریال/فیلم', callback_data='koil'),
-        ],
-        [
-            InlineKeyboardButton('❔راهنما', callback_data='help'),
-        ],
-        [
-            InlineKeyboardButton('📣کانال اطلاع رسانی', url='t.me/')
-        ],
-    ]
-    key = InlineKeyboardMarkup(button_list)
-    await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=key)
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🔍جستجو با نام سریال/فیلم", callback_data="koil")
+    builder.button(text="❔راهنما", callback_data="help")
+    builder.button(text="📣کانال اطلاع رسانی",  url='https://t.me/your_channel')
+    builder.adjust(1, 1)
+    keyboard = builder.as_markup()
+    await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=keyboard)
 
 
 @dp.message()
@@ -211,14 +204,13 @@ async def process_callback(query: types.CallbackQuery):
 
 @dp.callback_query(lambda query: query.data == "help")
 async def process_callback(query: types.CallbackQuery):
-    button_list = [
-        [
-            InlineKeyboardButton(pasegs.oilo, callback_data='vidio'),
-        ],
 
-    ]
-    key = InlineKeyboardMarkup(button_list)
-    await query.message.answer(pasegs.help, reply_markup=key)
+    builder = InlineKeyboardBuilder()
+    builder.button(text=pasegs.oilo, callback_data="vidio")
+    builder.adjust(1, 1)
+    keyboard = builder.as_markup()
+
+    await query.message.answer(pasegs.help, reply_markup=keyboard)
     await query.answer(pasegs.wait)
 
 
@@ -238,8 +230,7 @@ async def process_callback(query: types.CallbackQuery):
 
 
 async def main() -> None:
-    bot = Bot(token=TOKEN, default=DefaultBotProperties(
-        parse_mode=ParseMode.HTML))
+    bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     await dp.start_polling(bot)
 
 if __name__ == "__main__":

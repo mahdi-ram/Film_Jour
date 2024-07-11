@@ -1,8 +1,9 @@
-from .sites import find_movie_and_links_almas , find_movie_and_links
+from sites import new_almasmovie
+from sites import new_mobomovie
 
 def all_links(name: str, imdbid: str):
-    almasmovie_links = find_movie_and_links_almas(imdbid)
-    mobomovie_links = find_movie_and_links(name, imdbid)
+    almasmovie_links = new_almasmovie.find_movie_and_links(imdbid)
+    mobomovie_links = new_mobomovie.find_movie_and_links(name, imdbid)
     if almasmovie_links is None and mobomovie_links:
         if mobomovie_links[0] == "movie":
             return "movie", mobomovie_links[1]
@@ -34,4 +35,4 @@ def all_links(name: str, imdbid: str):
             return "movie",merged_dict
         else:
             return "serial",merged_dict
-#print(all_links("The Godfather","tt0068646"))
+print(all_links("The Godfather","tt0068646"))
