@@ -27,48 +27,56 @@ def clean_text(text: str) -> str:
     result = re.sub(pattern, '', text).strip()
     return result
 def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
-        if type == "movie":
-            movie = Session.query(Movie).filter_by(name=name).first()
-            if movie:
-                Session.query(SubtitleTypeMovie).filter_by(movie_id=movie.id).delete()
-            else:
-                movie = Movie(name=name)
-                Session.add(movie)
+    if type == "movie":
+        movie = Session.query(Movie).filter_by(name=name).first()
+        if movie:
+            # پاک کردن زیرنویس‌های قدیمی
+            Session.query(SubtitleTypeMovie).filter_by(movie_id=movie.id).delete()
+        else:
+            movie = Movie(name=name)
+            Session.add(movie)
 
-            for subtitle_type, qualities in data.items():
-                subtitle_type = clean_text(subtitle_type)
-                text = (
-                    "زیرنویس انگلیس 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
-                    "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
-                    "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
-                    subtitle_type
-                )
-                if text not in ["dubbed-sound", "subtitle"]:
-                    new_subtitle_type = SubtitleTypeMovie(type=text, movie=movie)
-                    for quality, link in qualities.items():
-                        new_quality = Quality(quality=quality, link=link, subtitle_type=new_subtitle_type)
+        for subtitle_type, qualities in data.items():
+            subtitle_type = clean_text(subtitle_type)
+            text = (
+                "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
+                "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
+                "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
+                subtitle_type
+            )
+            if text not in ["dubbed-sound", "subtitle"]:
+                new_subtitle_type = SubtitleTypeMovie(type=text, movie=movie)
+                Session.add(new_subtitle_type)
+                for quality, link in qualities.items():
+                    new_quality = Quality(quality=quality, link=link, subtitle_type=new_subtitle_type)
+                    Session.add(new_quality)
 
-            Session.commit()
-            return CheakExist(name, type)
-        else:  # serial
-            serial = Session_s.query(Serial).filter_by(name=name).first()
-            if serial:
-                # پاک کردن فصل‌ها و زیرنویس‌های قدیمی
-                Session_s.query(Season).filter_by(serial_id=serial.id).delete()
-            else:
-                serial = Serial(name=name)
-                Session_s.add(serial)
+        Session.commit()
+        return CheakExist(name, type)
+    else:  # serial
+        serial = Session_s.query(Serial).filter_by(name=name).first()
+        if serial:
+            # پاک کردن فصل‌ها و زیرنویس‌های قدیمی
+            Session_s.query(Season).filter_by(serial_id=serial.id).delete()
+        else:
+            serial = Serial(name=name)
+            Session_s.add(serial)
 
-            for season, subtyps in data.items():
-                new_season = Season(number=season, serial=serial)
-                for subtyp, qualitys in subtyps.items():
-                    subtitle_type = SubtitleType(type=subtyp, season=new_season)
-                    for quality, episodes in qualitys.items():
-                        subtitle_quality = SubtitleQuality(quality=quality, subtitle_type=subtitle_type)
-                        subtitle1 = Subtitle(value=json.dumps(episodes), subtitle_quality=subtitle_quality)
+        for season, subtyps in data.items():
+            new_season = Season(number=season, serial=serial)
+            Session_s.add(new_season)
+            for subtyp, qualitys in subtyps.items():
+                subtitle_type = SubtitleType(type=subtyp, season=new_season)
+                Session_s.add(subtitle_type)
+                for quality, episodes in qualitys.items():
+                    subtitle_quality = SubtitleQuality(quality=quality, subtitle_type=subtitle_type)
+                    Session_s.add(subtitle_quality)
+                    subtitle1 = Subtitle(value=json.dumps(episodes), subtitle_quality=subtitle_quality)
+                    Session_s.add(subtitle1)
 
-            Session_s.commit()
-            return CheakExist(name, type)
+        Session_s.commit()
+        return CheakExist(name, type)
+
 # function check exist name in database
 def CheakExist(name: str, type: str):
     if type == "movie":
