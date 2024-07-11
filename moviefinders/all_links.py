@@ -1,5 +1,5 @@
-from sites import new_almasmovie
-from sites import new_mobomovie
+from .sites import new_almasmovie
+from .sites import new_mobomovie
 
 def all_links(name: str, imdbid: str):
     almasmovie_links = new_almasmovie.find_movie_and_links(imdbid)

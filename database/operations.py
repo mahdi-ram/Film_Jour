@@ -114,6 +114,7 @@ def refresh_data(type, id, new_data):
 
         # فراخوانی تابع برای به‌روزرسانی
         InsertMovieOrSeriesDB(type, name, new_data)
+        return True
 
     elif type == 'serial':
         serial = Session_s.query(Serial).filter_by(id=id).first()
@@ -124,6 +125,7 @@ def refresh_data(type, id, new_data):
 
         # فراخوانی تابع برای به‌روزرسانی
         InsertMovieOrSeriesDB(type, name, new_data)
+        return True
 
     else:
         raise ValueError("Invalid type. Please use 'movie' or 'serial'.")

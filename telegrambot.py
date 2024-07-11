@@ -138,13 +138,14 @@ async def process_callback(query: types.CallbackQuery):
     imdb_id = query.data.split("_")[3]
     movie_id = int(query.data.split("_")[1])
     movietype = query.data.split("_")[2]
-    if movietype == "m":
+    if movietype == "M":
         movietype = "movie"
     else:
         movietype = "serial"
     movie_name = getname(movie_id, movietype)
     DL_links = all_links(movie_name, imdb_id)
-    refresh_data(movietype, movie_id, DL_links)
+    if refresh_data(movietype, movie_id, DL_links[1]):
+        await query.message.edit_text("بروزرسانی شد لطفا دوباره اسم فیلم/سریال خود را وارد کنید🍺")
 
 
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))
