@@ -26,41 +26,49 @@ def clean_text(text: str) -> str:
     pattern = r'@TgISTRASH$'
     result = re.sub(pattern, '', text).strip()
     return result
-def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
-    if type == "movie":
-        new_movie = Movie(name=name)
-        for subtitle_type, qualities in data.items():
-            subtitle_type=clean_text(subtitle_type)
-            text = (
-                "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
-                "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
-                "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
-                subtitle_type
-            )
-            if text == "dubbed-sound" or text=="subtitle" :
-                pass
+    def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
+        if type == "movie":
+            movie = Session.query(Movie).filter_by(name=name).first()
+            if movie:
+                Session.query(SubtitleTypeMovie).filter_by(movie_id=movie.id).delete()
             else:
-                new_subtitle_type = SubtitleTypeMovie(type=text, movie=new_movie)
-                for quality, link in qualities.items():
-                    new_quality = Quality(quality=quality, link=link, subtitle_type=new_subtitle_type)
+                movie = Movie(name=name)
+                Session.add(movie)
 
-        Session.add(new_movie)
-        Session.commit()
-        return CheakExist(name, type)
-    else:  # serial
-        new_serial = Serial(name=name)
-        for season, subtyps in data.items():
-            new_season = Season(number=season, serial=new_serial)  # Changed variable name to new_season
-            for subtyp, qualitys in subtyps.items():
-                subtitle_type = SubtitleType(type=subtyp, season=new_season)
-                for quality, episodes in qualitys.items():
-                    subtitle_quality = SubtitleQuality(quality=quality, subtitle_type=subtitle_type)
-                    subtitle1 = Subtitle(value=json.dumps(episodes), subtitle_quality=subtitle_quality)
+            for subtitle_type, qualities in data.items():
+                subtitle_type = clean_text(subtitle_type)
+                text = (
+                    "زیرنویس انگلیس 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
+                    "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
+                    "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
+                    subtitle_type
+                )
+                if text not in ["dubbed-sound", "subtitle"]:
+                    new_subtitle_type = SubtitleTypeMovie(type=text, movie=movie)
+                    for quality, link in qualities.items():
+                        new_quality = Quality(quality=quality, link=link, subtitle_type=new_subtitle_type)
 
-        Session_s.add(new_serial)
-        Session_s.commit()
-        return CheakExist(name, type)
+            Session.commit()
+            return CheakExist(name, type)
+        else:  # serial
+            serial = Session_s.query(Serial).filter_by(name=name).first()
+            if serial:
+                # پاک کردن فصل‌ها و زیرنویس‌های قدیمی
+                Session_s.query(Season).filter_by(serial_id=serial.id).delete()
+            else:
+                serial = Serial(name=name)
+                Session_s.add(serial)
 
+            for season, subtyps in data.items():
+                new_season = Season(number=season, serial=serial)
+                for subtyp, qualitys in subtyps.items():
+                    subtitle_type = SubtitleType(type=subtyp, season=new_season)
+                    for quality, episodes in qualitys.items():
+                        subtitle_quality = SubtitleQuality(quality=quality, subtitle_type=subtitle_type)
+                        subtitle1 = Subtitle(value=json.dumps(episodes), subtitle_quality=subtitle_quality)
+
+            Session_s.commit()
+            return CheakExist(name, type)
 # function check exist name in database
 def CheakExist(name: str, type: str):
     if type == "movie":
@@ -75,6 +83,43 @@ def CheakExist(name: str, type: str):
             return serial_id
         else:
             return None
+def getname(id: int, type: str):
+    if type == "movie":
+        movie_name = Session.query(Movie.name).filter(Movie.id == id).scalar()
+        if movie_name:
+            return movie_name
+        else:
+            return None
+    else:  # serial
+        serial_name= Session_s.query(Serial.name).filter(Serial.id == id).scalar()
+        if serial_name:
+            return serial_name
+        else:
+            return None
+def refresh_data(type, id, new_data):
+    if type == 'movie':
+        movie = movie_session.query(Movie).filter_by(id=id).first()
+        if movie:
+            name = movie.name
+        else:
+            raise ValueError("Movie not found")
+
+        # فراخوانی تابع برای به‌روزرسانی
+        InsertMovieOrSeriesDB(type, name, new_data)
+
+    elif type == 'serial':
+        serial = serial_session.query(Serial).filter_by(id=id).first()
+        if serial:
+            name = serial.name
+        else:
+            raise ValueError("Serial not found")
+
+        # فراخوانی تابع برای به‌روزرسانی
+        InsertMovieOrSeriesDB(type, name, new_data)
+
+    else:
+        raise ValueError("Invalid type. Please use 'movie' or 'serial'.")
+
 # function movie find subtitle types by movie id
 def MovieFindSubtitleTypes(movieid: int) -> dict:
     subtitle_types = Session.query(SubtitleTypeMovie).filter(
@@ -111,7 +156,7 @@ def SerialFinderSubTypes(season_id: int) -> dict:
             "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtype.type == "HardSob" else
             "زیرنویس فارسی 🇮🇷" if subtype.type == "soft-sub" else
             "دوبله فارسی 🗣" if subtype.type == "dubbed" else
-            "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿"       
+            "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿"
             )
         subtype_dict[text] = subtype.id
     return subtype_dict

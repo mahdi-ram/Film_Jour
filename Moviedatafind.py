@@ -10,7 +10,7 @@ def infodata(imdb_id: str):
         }
         response = requests.get(url, headers=headers)
         return json.loads(response.text)
-    
+
     def extract_info(results, media_type):
         if len(results) == 0:
             return None
@@ -20,12 +20,13 @@ def infodata(imdb_id: str):
         img_url = f"https://image.tmdb.org/t/p/original{item['poster_path']}"
         overview = item["overview"]
         creat_years=item["first_air_date"]
+        vote=item["vote_average"]
         if creat_years is None:
             creat_years=item["release_date"].split("-")[0]
         else:
             creat_years=item["first_air_date"].split("-")[0]
-        return name, or_name, img_url, overview ,creat_years
-    
+        return name, or_name, img_url, overview ,creat_years,vote
+
     json_data = get_data(imdb_id, "fa")
 
     # Check TV results first
@@ -35,7 +36,7 @@ def infodata(imdb_id: str):
     results = tv_results if media_type == "tv" else movie_results
 
     info = extract_info(results, media_type)
-    
+
     if info and len(info[3]) > 0:
         return info
     else:
@@ -44,7 +45,7 @@ def infodata(imdb_id: str):
         movie_results = json_data["movie_results"]
         media_type = "tv" if len(tv_results) > 0 else "movie"
         results = tv_results if media_type == "tv" else movie_results
-        
+
         return extract_info(results, media_type)
 
 # print(infodata("tt0903747"))

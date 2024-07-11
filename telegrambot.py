@@ -16,20 +16,29 @@ from Moviedatafind import infodata
 import pasegs
 from moviefinders import all_links
 from database import (CheakExist, InsertMovieOrSeriesDB,
-                       MovieFindSubtitleTypes, SerialFInderEpisodes,
-                       SerialFinderSeason, SerialFInderSubtitleQuality,
-                       SerialFinderSubTypes,MovieFinderQuality,userexit,userwrit)
+                      MovieFindSubtitleTypes, SerialFInderEpisodes,
+                      SerialFinderSeason, SerialFInderSubtitleQuality,
+                      SerialFinderSubTypes, MovieFinderQuality, userexit, userwrit, refresh_data, getname)
 
 TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
-dp = Dispatcher() 
-def create_keyboard(data:dict,patearn:str):
+dp = Dispatcher()
+
+
+def create_keyboard(data: dict, patearn: str, id: int, type: str, imdb_id: str):
     builder = InlineKeyboardBuilder()
     for x,  y in data.items():
         builder.button(text=x, callback_data=f"{patearn}_{y}")
-    builder.adjust(1,1)
-    keyboard=builder.as_markup()
+    if type == "movie":
+        builder.button(text="تازه سازی اطلاعات",
+                       callback_data=f"re_{id}_M_{imdb_id}")
+    else:
+        builder.button(text="تازه سازی اطلاعات",
+                       callback_data=f"re_{id}_S_{imdb_id}")
+    builder.adjust(1, 1)
+    keyboard = builder.as_markup()
     return keyboard
+
 
 def clean_text(text: str) -> str:
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)
@@ -38,17 +47,28 @@ def clean_text(text: str) -> str:
     return result
 
 
-
-
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     user_id = message.from_user.id
     username = message.from_user.username
     full_name = message.from_user.full_name
     if userexit(user_id) is None:
-        userwrit(user_id,username,full_name)
-        
-    await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message)
+        userwrit(user_id, username, full_name)
+    button_list = [
+        [
+            InlineKeyboardButton(
+                '🔍جستجو با نام سریال/فیلم', callback_data='koil'),
+        ],
+        [
+            InlineKeyboardButton('❔راهنما', callback_data='help'),
+        ],
+        [
+            InlineKeyboardButton('📣کانال اطلاع رسانی', url='t.me/')
+        ],
+    ]
+    key = InlineKeyboardMarkup(button_list)
+    await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=key)
+
 
 @dp.message()
 async def get_name_movie(message: Message) -> None:
@@ -67,104 +87,159 @@ async def get_name_movie(message: Message) -> None:
                 if movie_id_DB:
                     # If it's a movie
                     subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
-                    keyboard = create_keyboard(subtitle_types_dict, "MSTid")
-                    data=infodata(imdb_id)
-                    emtiaz=f"⭐️ امیتاز {data[5]} از 10"
-                    react=types.ReactionTypeEmoji(emoji="🔥")
+                    keyboard = create_keyboard(
+                        subtitle_types_dict, "MSTid", movie_id_DB, "movie", imdb_id)
+                    data = infodata(imdb_id)
+                    emtiaz = f"⭐️ امیتاز {data[5]} از 10"
+                    react = types.ReactionTypeEmoji(emoji="🔥")
                     await message.react([react])
-                    await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n" ,show_caption_above_media=True, reply_markup=keyboard)
+                    await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
                 elif serial_id_DB:
                     # If it's a serial
                     Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
-                    keyboard = create_keyboard(Serial_Seasons, "SSid")
-                    data=infodata(imdb_id)
-                    emtiaz=f"⭐️ امیتاز {data[5]} از 10"
-                    react=types.ReactionTypeEmoji(emoji="🔥")
+                    keyboard = create_keyboard(
+                        Serial_Seasons, "SSid", serial_id_DB, "serial", imdb_id)
+                    data = infodata(imdb_id)
+                    emtiaz = f"⭐️ امیتاز {data[5]} از 10"
+                    react = types.ReactionTypeEmoji(emoji="🔥")
                     await message.react([react])
-                    await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n" ,show_caption_above_media=True, reply_markup=keyboard)
+                    await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
                 else:
                     # If not found in the database, fetch the links
                     DL_links = all_links(movie_name, imdb_id)
                     if DL_links is None:
-                        react=types.ReactionTypeEmoji(emoji="😢")
+                        react = types.ReactionTypeEmoji(emoji="😢")
                         await message.react([react])
                         await message.answer(pasegs.not_fouand)
                     elif DL_links[0] == "movie":
-                        movie_id_DB = InsertMovieOrSeriesDB("movie", movie_name, DL_links[1])
-                        subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
-                        keyboard = create_keyboard(subtitle_types_dict, "MSTid")
-                        data=infodata(imdb_id)
-                        emtiaz=f"⭐️ امیتاز {data[5]} از 10"
-                        react=types.ReactionTypeEmoji(emoji="🔥")
+                        movie_id_DB = InsertMovieOrSeriesDB(
+                            "movie", movie_name, DL_links[1])
+                        subtitle_types_dict = MovieFindSubtitleTypes(
+                            movie_id_DB)
+                        keyboard = create_keyboard(
+                            subtitle_types_dict, "MSTid", movie_id_DB, "movie", imdb_id)
+                        data = infodata(imdb_id)
+                        emtiaz = f"⭐️ امیتاز {data[5]} از 10"
+                        react = types.ReactionTypeEmoji(emoji="🔥")
                         await message.react([react])
-                        await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n",show_caption_above_media=True , reply_markup=keyboard)
+                        await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
                     else:
-                        serial_id_DB = InsertMovieOrSeriesDB("serial", movie_name, DL_links[1])
+                        serial_id_DB = InsertMovieOrSeriesDB(
+                            "serial", movie_name, DL_links[1])
                         Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
-                        keyboard = create_keyboard(Serial_Seasons, "SSid")
-                        data=infodata(imdb_id)
-                        emtiaz=f"⭐️ امیتاز {data[5]} از 10"
-                        react=types.ReactionTypeEmoji(emoji="🔥")
+                        keyboard = create_keyboard(
+                            Serial_Seasons, "SSid", serial_id_DB, "serial", imdb_id)
+                        data = infodata(imdb_id)
+                        emtiaz = f"⭐️ امیتاز {data[5]} از 10"
+                        react = types.ReactionTypeEmoji(emoji="🔥")
                         await message.react([react])
-                        await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n",show_caption_above_media=True , reply_markup=keyboard)
+                        await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
     except TypeError:
-        react=types.ReactionTypeEmoji(emoji="🤯")
+        react = types.ReactionTypeEmoji(emoji="🤯")
         await message.react([react])
         await message.answer("مشکل پیش آمده لطفا به ادمین پیام دهید")
 
+
+@dp.callback_query(lambda query: query.data.startswith('re_'))
+async def process_callback(query: types.CallbackQuery):
+    imdb_id = query.data.split("_")[3]
+    movie_id = int(query.data.split("_")[1])
+    movietype = query.data.split("_")[2]
+    if movietype == "m":
+        movietype = "movie"
+    else:
+        movietype = "serial"
+    movie_name = getname(movie_id, movietype)
+    DL_links = all_links(movie_name, imdb_id)
+    refresh_data(movietype, movie_id, DL_links)
+
+
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))
 async def process_callback(query: types.CallbackQuery):
-    subtitle_type_id=int(query.data.split("_")[1])
-    quality_dict=MovieFinderQuality(subtitle_type_id)
+    subtitle_type_id = int(query.data.split("_")[1])
+    quality_dict = MovieFinderQuality(subtitle_type_id)
     builder = InlineKeyboardBuilder()
-    for quality ,quality_link in quality_dict.items():
-         builder.button(text=quality, url=quality_link)
-    builder.adjust(1,1)
-    keyboard=builder.as_markup()
-    await query.message.answer("لطفا کیفیت را مشخص کنید",reply_markup=keyboard)
+    for quality, quality_link in quality_dict.items():
+        builder.button(text=quality, url=quality_link)
+    builder.adjust(1, 1)
+    keyboard = builder.as_markup()
+    await query.message.answer("لطفا کیفیت را مشخص کنید", reply_markup=keyboard)
     await query.answer(pasegs.wait)
+
 
 @dp.callback_query(lambda query: query.data.startswith('SSid_'))
 async def process_callback(query: types.CallbackQuery):
-    serial_season_id=int(query.data.split("_")[1])
-    SubTypes_dict=SerialFinderSubTypes(serial_season_id)
+    serial_season_id = int(query.data.split("_")[1])
+    SubTypes_dict = SerialFinderSubTypes(serial_season_id)
     builder = InlineKeyboardBuilder()
-    for SubType ,SubType_id in SubTypes_dict.items():
-        #SSTid serial subtitel type id
+    for SubType, SubType_id in SubTypes_dict.items():
+        # SSTid serial subtitel type id
         builder.button(text=SubType,  callback_data=f"SSTid_{SubType_id}")
-    builder.adjust(1,1)
-    keyboard=builder.as_markup()
-    await query.message.answer("لطفا نوع زیرنویس  را مشخص کنید",reply_markup=keyboard)
+    builder.adjust(1, 1)
+    keyboard = builder.as_markup()
+    await query.message.answer("لطفا نوع زیرنویس  را مشخص کنید", reply_markup=keyboard)
     await query.answer(pasegs.wait)
+
 
 @dp.callback_query(lambda query: query.data.startswith('SSTid_'))
 async def process_callback(query: types.CallbackQuery):
-    subtype_id=int(query.data.split("_")[1])
-    SubtitleQualitys_dict=SerialFInderSubtitleQuality(subtype_id)
+    subtype_id = int(query.data.split("_")[1])
+    SubtitleQualitys_dict = SerialFInderSubtitleQuality(subtype_id)
     builder = InlineKeyboardBuilder()
-    for Quality ,Quality_id in SubtitleQualitys_dict.items():
-        #SSQid seiral sub quality id
+    for Quality, Quality_id in SubtitleQualitys_dict.items():
+        # SSQid seiral sub quality id
         builder.button(text=Quality,  callback_data=f"SSQid_{Quality_id}")
-    builder.adjust(1,1)
-    keyboard=builder.as_markup()
-    await query.message.answer("لطفا نوع کیفیت  را مشخص کنید",reply_markup=keyboard)
+    builder.adjust(1, 1)
+    keyboard = builder.as_markup()
+    await query.message.answer("لطفا نوع کیفیت  را مشخص کنید", reply_markup=keyboard)
     await query.answer(pasegs.wait)
+
 
 @dp.callback_query(lambda query: query.data.startswith('SSQid_'))
 async def process_callback(query: types.CallbackQuery):
-    quality_id=int(query.data.split("_")[1])
-    episod_dict=SerialFInderEpisodes(quality_id)
+    quality_id = int(query.data.split("_")[1])
+    episod_dict = SerialFInderEpisodes(quality_id)
     builder = InlineKeyboardBuilder()
-    for episode ,link in json.loads(episod_dict).items():
+    for episode, link in json.loads(episod_dict).items():
         builder.button(text=episode, url=link)
-    builder.adjust(2,2)
-    keyboard=builder.as_markup()
+    builder.adjust(2, 2)
+    keyboard = builder.as_markup()
     inline_message_id = query.inline_message_id
-    await query.message.edit_text("لطفا قسمت  را انتخاب کنید",reply_markup=keyboard ,inline_message_id=inline_message_id)
+    await query.message.edit_text("لطفا قسمت  را انتخاب کنید", reply_markup=keyboard, inline_message_id=inline_message_id)
     await query.answer(pasegs.wait)
 
+
+@dp.callback_query(lambda query: query.data == "help")
+async def process_callback(query: types.CallbackQuery):
+    button_list = [
+        [
+            InlineKeyboardButton(pasegs.oilo, callback_data='vidio'),
+        ],
+
+    ]
+    key = InlineKeyboardMarkup(button_list)
+    await query.message.answer(pasegs.help, reply_markup=key)
+    await query.answer(pasegs.wait)
+
+
+@dp.callback_query(lambda query: query.data == "vidio")
+async def process_callback(query: types.CallbackQuery):
+    try:
+        video_url="https://eu-central.storage.cloudconvert.com/tasks/009c2520-013e-4b79-87ad-f6ae68851d7d/Screencast%20from%202024-07-11%2017-55-47.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cloudconvert-production%2F20240711%2Ffra%2Fs3%2Faws4_request&X-Amz-Date=20240711T142749Z&X-Amz-Expires=86400&X-Amz-Signature=bd6c545bbe85ca1f5a140a9fff21b9e30e7d9652eb50617d5679a36be3b3071d&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22Screencast%20from%202024-07-11%2017-55-47.mp4%22&response-content-type=video%2Fmp4&x-id=GetObject"
+        await bot.send_video(message.chat.id, video_url)
+    except Exception as e:
+        await message.reply(f"مشکلی در ارسال فیلم پیش آمد")
+
+
+@dp.callback_query(lambda query: query.data == "koil")
+async def process_callback(query: types.CallbackQuery):
+    await query.message.answer(pasegs.searcher)
+    await query.answer(pasegs.wait)
+
+
 async def main() -> None:
-    bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    bot = Bot(token=TOKEN, default=DefaultBotProperties(
+        parse_mode=ParseMode.HTML))
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
