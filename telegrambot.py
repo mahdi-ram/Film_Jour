@@ -63,7 +63,7 @@ async def command_start_handler(message: Message) -> None:
     keyboard = builder.as_markup()
     await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=keyboard)
     args = message.get_args()
-    if len(args)!=0:
+    if args:
         if args.startswith("SGL_"):
             serial_id_DB=args.split("_")[1]
             imdb_id=args.split("_")[2]
@@ -168,7 +168,7 @@ async def process_callback(query: types.CallbackQuery):
     movie_id_DB = int(query.data.split("_")[1])
     imdb_id=query.data.split("_")[2]
     base_link="https://t.me/connettestthis_bot?start="
-    await message.answer(f"{pasegs.shearlink}\n{base_link}SGL_{movie_id_DB}_{imdb_id}")
+    await  query.message.answer(f"{pasegs.shearlink}\n{base_link}SGL_{movie_id_DB}_{imdb_id}")
 
 
 @dp.callback_query(lambda query: query.data.startswith('MSL_'))
@@ -176,7 +176,7 @@ async def process_callback(query: types.CallbackQuery):
     movie_id_DB = int(query.data.split("_")[1])
     imdb_id=query.data.split("_")[2]
     base_link="https://t.me/connettestthis_bot?start="
-    await message.answer(f"{pasegs.shearlink}\n{base_link}MGL_{movie_id_DB}_{imdb_id}")
+    await  query.message.answer(f"{pasegs.shearlink}\n{base_link}MGL_{movie_id_DB}_{imdb_id}")
 
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))
 async def process_callback(query: types.CallbackQuery):
@@ -235,12 +235,10 @@ async def process_callback(query: types.CallbackQuery):
 
 @dp.callback_query(lambda query: query.data == "help")
 async def process_callback(query: types.CallbackQuery):
-
     builder = InlineKeyboardBuilder()
     builder.button(text=pasegs.oilo, callback_data="vidio")
     builder.adjust(1, 1)
     keyboard = builder.as_markup()
-
     await query.message.answer(pasegs.help, reply_markup=keyboard)
     await query.answer(pasegs.wait)
 
@@ -251,7 +249,7 @@ async def process_callback(query: types.CallbackQuery):
         video_url="https://eu-central.storage.cloudconvert.com/tasks/009c2520-013e-4b79-87ad-f6ae68851d7d/Screencast%20from%202024-07-11%2017-55-47.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cloudconvert-production%2F20240711%2Ffra%2Fs3%2Faws4_request&X-Amz-Date=20240711T142749Z&X-Amz-Expires=86400&X-Amz-Signature=bd6c545bbe85ca1f5a140a9fff21b9e30e7d9652eb50617d5679a36be3b3071d&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22Screencast%20from%202024-07-11%2017-55-47.mp4%22&response-content-type=video%2Fmp4&x-id=GetObject"
         await bot.send_video(message.chat.id, video_url)
     except Exception as e:
-        await message.reply(f"مشکلی در ارسال فیلم پیش آمد")
+        await  query.message.answer(f"مشکلی در ارسال فیلم پیش آمد")
 
 
 @dp.callback_query(lambda query: query.data == "koil")
