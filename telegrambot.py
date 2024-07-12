@@ -30,11 +30,12 @@ def create_keyboard(data: dict, patearn: str, id: int, type: str, imdb_id: str):
     for x,  y in data.items():
         builder.button(text=x, callback_data=f"{patearn}_{y}")
     if type == "movie":
-        builder.button(text="تازه سازی اطلاعات",
-                       callback_data=f"re_{id}_M_{imdb_id}")
+        builder.button(text="تازه سازی اطلاعات♻️",callback_data=f"re_{id}_M_{imdb_id}")
+        builder.button(text="لینک اشتراک گزاری📡",callback_data=f"MSL_{id}_{imdb_id}")
     else:
-        builder.button(text="تازه سازی اطلاعات",
-                       callback_data=f"re_{id}_S_{imdb_id}")
+        builder.button(text="تازه سازی اطلاعات♻️",callback_data=f"re_{id}_S_{imdb_id}")
+        builder.button(text="لینک اشتراک گزاری📡",callback_data=f"SSL_{id}_{imdb_id}")
+    
     builder.adjust(1, 1)
     keyboard = builder.as_markup()
     return keyboard
@@ -61,7 +62,23 @@ async def command_start_handler(message: Message) -> None:
     builder.adjust(1, 1)
     keyboard = builder.as_markup()
     await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=keyboard)
-
+    args = message.get_args()
+    if len(args)!=0:
+        if args.startswith("SGL_"):
+            serial_id_DB=args.split("_")[1]
+            imdb_id=args.split("_")[2]
+            Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
+            keyboard = create_keyboard(Serial_Seasons, "SSid", serial_id_DB, "serial", imdb_id)
+            data = infodata(imdb_id)
+            emtiaz = f"⭐️ امیتاز {data[5]} از 10"
+            await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+        elif args.startswith("SGL_"):
+            movie_id_DB=args.split("_")[1]
+            imdb_id=args.split("_")[2]
+            subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
+            keyboard = create_keyboard(subtitle_types_dict, "MSTid", movie_id_DB, "movie", imdb_id)
+            data = infodata(imdb_id)
+            await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
 
 @dp.message()
 async def get_name_movie(message: Message) -> None:
@@ -105,10 +122,8 @@ async def get_name_movie(message: Message) -> None:
                         await message.react([react])
                         await message.answer(pasegs.not_fouand)
                     elif DL_links[0] == "movie":
-                        movie_id_DB = InsertMovieOrSeriesDB(
-                            "movie", movie_name, DL_links[1])
-                        subtitle_types_dict = MovieFindSubtitleTypes(
-                            movie_id_DB)
+                        movie_id_DB = InsertMovieOrSeriesDB("movie", movie_name, DL_links[1])
+                        subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
                         keyboard = create_keyboard(
                             subtitle_types_dict, "MSTid", movie_id_DB, "movie", imdb_id)
                         data = infodata(imdb_id)
@@ -145,8 +160,23 @@ async def process_callback(query: types.CallbackQuery):
     movie_name = getname(movie_id, movietype)
     DL_links = all_links(movie_name, imdb_id)
     if refresh_data(movietype, movie_id, DL_links[1]):
-        await query.message.edit_text("بروزرسانی شد لطفا دوباره اسم فیلم/سریال خود را وارد کنید🍺")
+        await query.message.answer("بروزرسانی شد لطفا دوباره اسم فیلم/سریال خود را وارد کنید🍺")
 
+
+@dp.callback_query(lambda query: query.data.startswith('SSL_'))
+async def process_callback(query: types.CallbackQuery):
+    movie_id_DB = int(query.data.split("_")[1])
+    imdb_id=query.data.split("_")[2]
+    base_link="https://t.me/connettestthis_bot?start="
+    await message.answer(f"{pasegs.shearlink}\n{base_link}SGL_{movie_id_DB}_{imdb_id}")
+
+
+@dp.callback_query(lambda query: query.data.startswith('MSL_'))
+async def process_callback(query: types.CallbackQuery):
+    movie_id_DB = int(query.data.split("_")[1])
+    imdb_id=query.data.split("_")[2]
+    base_link="https://t.me/connettestthis_bot?start="
+    await message.answer(f"{pasegs.shearlink}\n{base_link}MGL_{movie_id_DB}_{imdb_id}")
 
 @dp.callback_query(lambda query: query.data.startswith('MSTid_'))
 async def process_callback(query: types.CallbackQuery):
