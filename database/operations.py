@@ -39,7 +39,7 @@ def InsertMovieOrSeriesDB(type: str, name: str, data: dict):
         for subtitle_type, qualities in data.items():
             subtitle_type = clean_text(subtitle_type)
             text = (
-                "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type == "HardSub" else
+                "زیرنویس انگلیسی 🏴󠁧󠁢󠁥󠁮󠁧󠁿" if subtitle_type.startswith("H") else
                 "زیرنویس فارسی 🇮🇷" if subtitle_type == "soft-sub" else
                 "دوبله فارسی 🗣" if subtitle_type == "dubbed" else
                 subtitle_type
