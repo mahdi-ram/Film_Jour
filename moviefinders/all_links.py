@@ -35,4 +35,4 @@ def all_links(name: str, imdbid: str):
             return "movie",merged_dict
         else:
             return "serial",merged_dict
-print(all_links("The Godfather","tt0068646"))
+# print(all_links("The Godfather","tt0068646"))

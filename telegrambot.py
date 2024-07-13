@@ -7,7 +7,7 @@ import sys
 from aiogram import Bot, Dispatcher, html, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart ,Command,CommandObject
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from Moviedatafind import infodata
@@ -48,21 +48,14 @@ def clean_text(text: str) -> str:
     return result
 
 
-@dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
+@dp.message(Command("start"))
+async def command_start_handler(message: Message,command:CommandObject) -> None:
     user_id = message.from_user.id
     username = message.from_user.username
     full_name = message.from_user.full_name
     if userexit(user_id) is None:
         userwrit(user_id, username, full_name)
-    builder = InlineKeyboardBuilder()
-    builder.button(text="🔍جستجو با نام سریال/فیلم", callback_data="koil")
-    builder.button(text="❔راهنما", callback_data="help")
-    builder.button(text="📣کانال اطلاع رسانی",  url='https://t.me/your_channel')
-    builder.adjust(1, 1)
-    keyboard = builder.as_markup()
-    await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=keyboard)
-    args = message.get_args()
+    args = command.args
     if args:
         if args.startswith("SGL_"):
             serial_id_DB=args.split("_")[1]
@@ -72,14 +65,22 @@ async def command_start_handler(message: Message) -> None:
             data = infodata(imdb_id)
             emtiaz = f"⭐️ امیتاز {data[5]} از 10"
             await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
-        elif args.startswith("SGL_"):
+        elif args.startswith("MGL_"):
             movie_id_DB=args.split("_")[1]
             imdb_id=args.split("_")[2]
             subtitle_types_dict = MovieFindSubtitleTypes(movie_id_DB)
             keyboard = create_keyboard(subtitle_types_dict, "MSTid", movie_id_DB, "movie", imdb_id)
             data = infodata(imdb_id)
+            emtiaz = f"⭐️ امیتاز {data[5]} از 10"
             await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
-
+    else:
+        builder = InlineKeyboardBuilder()
+        builder.button(text="🔍جستجو با نام سریال/فیلم", callback_data="koil")
+        builder.button(text="❔راهنما", callback_data="help")
+        builder.button(text="📣کانال اطلاع رسانی",  url='https://t.me/your_channel')
+        builder.adjust(1, 1)
+        keyboard = builder.as_markup()
+        await message.answer(f"سلام, {html.bold(message.from_user.full_name)}!\n" + pasegs.start_message, reply_markup=keyboard)
 @dp.message()
 async def get_name_movie(message: Message) -> None:
     try:
