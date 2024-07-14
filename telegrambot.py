@@ -24,6 +24,11 @@ TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
 
 dp = Dispatcher()
 
+def shorten_caption(caption):
+    MAX_CAPTION_LENGTH=800
+    if len(caption) > MAX_CAPTION_LENGTH:
+        return caption[:MAX_CAPTION_LENGTH - 3] + "..."
+    return caption
 
 def create_keyboard(data: dict, patearn: str, id: int, type: str, imdb_id: str):
     builder = InlineKeyboardBuilder()
@@ -51,9 +56,9 @@ def clean_text(text: str) -> str:
 @dp.message(Command("start"))
 async def command_start_handler(message: Message,command:CommandObject) -> None:
     user_id = message.from_user.id
-    username = message.from_user.username
-    full_name = message.from_user.full_name
     if userexit(user_id) is None:
+        username = message.from_user.username
+        full_name = message.from_user.full_name
         userwrit(user_id, username, full_name)
     args = command.args
     if args:
@@ -64,7 +69,7 @@ async def command_start_handler(message: Message,command:CommandObject) -> None:
             keyboard = create_keyboard(Serial_Seasons, "SSid", serial_id_DB, "serial", imdb_id)
             data = infodata(imdb_id)
             emtiaz = f"⭐️ امیتاز {data[5]} از 10"
-            await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+            await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {shorten_caption(data[3])}\n", show_caption_above_media=True, reply_markup=keyboard)
         elif args.startswith("MGL_"):
             movie_id_DB=args.split("_")[1]
             imdb_id=args.split("_")[2]
@@ -72,7 +77,7 @@ async def command_start_handler(message: Message,command:CommandObject) -> None:
             keyboard = create_keyboard(subtitle_types_dict, "MSTid", movie_id_DB, "movie", imdb_id)
             data = infodata(imdb_id)
             emtiaz = f"⭐️ امیتاز {data[5]} از 10"
-            await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+            await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {shorten_caption(data[3])}\n", show_caption_above_media=True, reply_markup=keyboard)
     else:
         builder = InlineKeyboardBuilder()
         builder.button(text="🔍جستجو با نام سریال/فیلم", callback_data="koil")
@@ -104,7 +109,7 @@ async def get_name_movie(message: Message) -> None:
                     emtiaz = f"⭐️ امیتاز {data[5]} از 10"
                     react = types.ReactionTypeEmoji(emoji="🔥")
                     await message.react([react])
-                    await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+                    await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {shorten_caption(data[3])}\n", show_caption_above_media=True, reply_markup=keyboard)
                 elif serial_id_DB:
                     # If it's a serial
                     Serial_Seasons = SerialFinderSeason(int(serial_id_DB))
@@ -114,7 +119,7 @@ async def get_name_movie(message: Message) -> None:
                     emtiaz = f"⭐️ امیتاز {data[5]} از 10"
                     react = types.ReactionTypeEmoji(emoji="🔥")
                     await message.react([react])
-                    await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+                    await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {shorten_caption(data[3])}\n", show_caption_above_media=True, reply_markup=keyboard)
                 else:
                     # If not found in the database, fetch the links
                     DL_links = all_links(movie_name, imdb_id)
@@ -131,7 +136,7 @@ async def get_name_movie(message: Message) -> None:
                         emtiaz = f"⭐️ امیتاز {data[5]} از 10"
                         react = types.ReactionTypeEmoji(emoji="🔥")
                         await message.react([react])
-                        await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+                        await message.answer_photo(photo=data[2], caption=f"{pasegs.film} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {shorten_caption(data[3])}\n", show_caption_above_media=True, reply_markup=keyboard)
                     else:
                         serial_id_DB = InsertMovieOrSeriesDB(
                             "serial", movie_name, DL_links[1])
@@ -142,7 +147,7 @@ async def get_name_movie(message: Message) -> None:
                         emtiaz = f"⭐️ امیتاز {data[5]} از 10"
                         react = types.ReactionTypeEmoji(emoji="🔥")
                         await message.react([react])
-                        await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {data[3]}\n", show_caption_above_media=True, reply_markup=keyboard)
+                        await message.answer_photo(photo=data[2], caption=f"{pasegs.serial} {data[0]}({data[1]})\n{pasegs.sal_sakht} {data[4]}\n{emtiaz}\n\n{pasegs.kholase} {shorten_caption(data[3])}\n", show_caption_above_media=True, reply_markup=keyboard)
     except TypeError:
         react = types.ReactionTypeEmoji(emoji="🤯")
         await message.react([react])
