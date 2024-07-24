@@ -20,7 +20,7 @@ from database import (CheakExist, InsertMovieOrSeriesDB,
                       SerialFinderSeason, SerialFInderSubtitleQuality,
                       SerialFinderSubTypes, MovieFinderQuality, userexit, userwrit, refresh_data, getname)
 
-TOKEN = "6664665455:AAHoJRgMdNLz9aYbC2elfRHjgUlNpB7szh8"
+TOKEN = ":)"
 
 dp = Dispatcher()
 
