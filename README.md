@@ -1,16 +1,17 @@
 
-# فیلم جور
+#Film Jour
 
-این پروژه یک پروژه تستی برای جستجو و نمایش اطلاعات مربوط به فیلم‌ها است. لطفاً توجه داشته باشید که ممکن است برخی از کد‌های مرتبط با سرور‌ها به دلیل اپدیت های مکرر سایت های مختلف به مرور زمان غیرفعال شوند و دیگر کار نکنند.
-برای نگهداری از مخزن کافیست سایت جدید به ان اضافه کنید.
+This is a test project for searching and displaying information related to movies.
+Please note that some server-related code may stop working over time due to frequent updates on various websites.
+To maintain the repository, simply add a new site when needed.
+Project Goal
 
-## هدف پروژه
-تمرین و آشنایی با توسعه و مدیریت پروژه‌های ربات تلگرامی و وب اسکرپینگ و حل مشکل دسترسی به فیلم و سریال رایگان توسعه داده شده است.
+This project was developed as practice for learning and becoming familiar with developing and managing Telegram bots, performing web scraping, and addressing the issue of accessing free movies and TV shows.
 
-## لیست کار ها
+#Task List
 
-- [ ] اضافه کردن سایت جدید
-- [ ] تغییر نحوه سرچ در ربات
-- [ ] اضافه کردن قابلیت ارسال فایل در خود ربات
+Add a new website
 
+Change the search method in the bot
 
+Add the ability to send files directly within the bot
